@@ -27,14 +27,14 @@ public class ServiceBooking {
 	@Column(name = "repairid")
 	private String repairID;
 	@Column(name = "mechanicid")
-	private String mechanicID;
+	private Integer mechanicID;
 	
 	public ServiceBooking() {
 		
 	}
 	
 	public ServiceBooking(String date, String comments, String status, String userID, String carID, String repairID,
-			String mechanicID) {
+			int mechanicID) {
 		this.date = date;
 		this.comments = comments;
 		this.status = status;
@@ -100,11 +100,11 @@ public class ServiceBooking {
 		this.repairID = repairID;
 	}
 
-	public String getMechanicID() {
+	public int getMechanicID() {
 		return mechanicID;
 	}
 
-	public void setMechanicID(String mechanicID) {
+	public void setMechanicID(int mechanicID) {
 		this.mechanicID = mechanicID;
 	}
 	

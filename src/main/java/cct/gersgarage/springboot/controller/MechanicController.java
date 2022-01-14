@@ -22,4 +22,6 @@ public class MechanicController {
 		
 		return mechanicRepository.findAll();
 	}
+	
+
 }
