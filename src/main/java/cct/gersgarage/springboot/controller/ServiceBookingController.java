@@ -41,8 +41,6 @@ public class ServiceBookingController {
 	private RepairTypeRepository repairTypeRepository;
 	@Autowired
 	private MechanicRepository mechanicRepository;
-	
-	
 
 	@GetMapping("/getbookings")
 	public List<ServiceBooking> getAllBookings(){
@@ -88,7 +86,6 @@ public class ServiceBookingController {
 	
 	@PostMapping("/savebooking")
 	public boolean postBooking(@RequestBody BookingForm booking) {
-		checkDatesAvailability(); //delete later
 		User user = new User();
 		user.setUserID("3");
 		user.setName(booking.getName());
@@ -170,16 +167,24 @@ public class ServiceBookingController {
 		}
 	}
 	
-	public void checkDatesAvailability() {
+	@GetMapping("/getUnavailableDates/{repairType}")
+	public List<String> checkDatesAvailability(@PathVariable("repairType") String repairType) {
 		//List<Date> unavailableDates = new ArrayList<Date>();
 		LocalDate dateTemp = LocalDate.now();
+		List<String> unavailableDates = new ArrayList<String>(); 
 		Hashtable<Integer,Integer> mechanicDict = new Hashtable<Integer,Integer>(); //cambiar a cada fecha
 		for(Mechanic mechanic: mechanicRepository.findAll()) {
 			mechanicDict.put(mechanic.getMechanicID(), 0);
 		}
 		int numberServices = 0;
-		for(LocalDate date = LocalDate.now(); date.isBefore(dateTemp.plusDays(200)); date = date.plusDays(1)) {
-			for(ServiceBooking booking: serviceBookingRepository.findAll()) {
+		boolean availableMechanics = false;
+		for(LocalDate date = LocalDate.now(); date.isBefore(dateTemp.plusDays(200)); date = date.plusDays(1)) { //checks each day for availability 
+			numberServices = 0;
+			availableMechanics = false;
+			for(Mechanic mechanic: mechanicRepository.findAll()) {
+				mechanicDict.replace(mechanic.getMechanicID(), 0);
+			}
+			for(ServiceBooking booking: serviceBookingRepository.findAll()) {			//checks all bookings and creates hashtable which shows how many services a mechanic has on that day
 				if(booking.getDate().equals(date.toString())) {
 					for(Mechanic mechanic: mechanicRepository.findAll()) {
 						if(booking.getMechanicID()==mechanic.getMechanicID()&&booking.getRepairID().contains("MajorRepair")) {
@@ -192,20 +197,58 @@ public class ServiceBookingController {
 					}
 				}
 			}
+			
+			for(int i=1;i<=mechanicRepository.findAll().size();i++) {			//checks if each mechanic has 4 service, otherwise there is availability
+				if(repairType.contains("MajorRepair")) {					//if it is a major repair checks on availability of 2 spots
+					if(mechanicDict.get(i)<3) {
+						availableMechanics = true;
+					}
+				} else {
+					if(mechanicDict.get(i)<4) {
+						availableMechanics = true;
+					}
+				}
+			}
+			
+			if(!availableMechanics) {			//adds to array the date if there is no available mechanics
+				unavailableDates.add(date.toString());
+			}
+			
+			
+			//System.out.println(availableMechanics);
 		}
-		System.out.println(mechanicDict);
+		return unavailableDates;
 	}
 	
-	@GetMapping("/bookingsDay/{day}/{month}/{year}")
-	public List<ServiceBooking> getBookingsDay(@PathVariable("day") String day,@PathVariable("month") String month,@PathVariable("year") String year){
+	@GetMapping("/bookingsDay/{date}")
+	public List<ServiceBooking> getBookingsDay(@PathVariable("date") String date){
 		List<ServiceBooking> bookingsDay = new ArrayList<ServiceBooking>();
 		for(ServiceBooking booking : serviceBookingRepository.findAll()) {
 			if(booking.getDate()!=null) {
-				if(booking.getDate().equals(day+"/"+month+"/"+year)) {
+				if(booking.getDate().equals(date)) {
 					bookingsDay.add(booking);
 				}
 			}
 		}
+		return bookingsDay;
+	}
+	
+	@GetMapping("/bookingsWeek/{date}")
+	public List<ServiceBooking> getBookingsWeek(@PathVariable("date") String date){
+		List<ServiceBooking> bookingsDay = new ArrayList<ServiceBooking>();
+		LocalDate tempDate = LocalDate.parse(date);
+		for(int i=0;i<7;i++) {
+			for(ServiceBooking booking : serviceBookingRepository.findAll()) {
+				if(booking.getDate()!=null) {
+					if(booking.getDate().equals(tempDate.toString())) {
+						bookingsDay.add(booking);
+					}
+				}
+			}
+			tempDate = tempDate.plusDays(1);
+			System.out.println(tempDate);
+		}
+		
 		return bookingsDay;
 	}
 	
