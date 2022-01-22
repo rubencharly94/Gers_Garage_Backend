@@ -3,19 +3,25 @@ package cct.gersgarage.springboot.model;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.Table;
 
 @Entity
+@IdClass(PartUseID.class)
 @Table(name= "partuse")
 public class PartUse {
 	@Id
 	@Column(name = "serviceid")
 	private int serviceID;
+	@Id
 	@Column(name = "partid")
-	private String partID;
-	public PartUse(int serviceID, String partID) {
+	private int partID;
+	@Column(name = "quantity")
+	private int quantity;
+	public PartUse(int serviceID, int partID, int quantity) {
 		this.serviceID = serviceID;
 		this.partID = partID;
+		this.quantity = quantity;
 	}
 	
 	public PartUse() {
@@ -30,12 +36,20 @@ public class PartUse {
 		this.serviceID = serviceID;
 	}
 
-	public String getPartID() {
+	public int getPartID() {
 		return partID;
 	}
 
-	public void setPartID(String partID) {
+	public void setPartID(int partID) {
 		this.partID = partID;
+	}
+
+	public int getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
 	}
 	
 }

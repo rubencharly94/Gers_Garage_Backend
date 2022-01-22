@@ -18,11 +18,21 @@ import org.springframework.web.bind.annotation.RestController;
 
 import cct.gersgarage.springboot.model.BookingForm;
 import cct.gersgarage.springboot.model.Car;
+import cct.gersgarage.springboot.model.CarMake;
+import cct.gersgarage.springboot.model.CarModel;
 import cct.gersgarage.springboot.model.Mechanic;
+import cct.gersgarage.springboot.model.ModifiedBooking;
+import cct.gersgarage.springboot.model.Part;
+import cct.gersgarage.springboot.model.PartUse;
+import cct.gersgarage.springboot.model.RepairType;
 import cct.gersgarage.springboot.model.ServiceBooking;
 import cct.gersgarage.springboot.model.User;
+import cct.gersgarage.springboot.repository.CarMakeRepository;
+import cct.gersgarage.springboot.repository.CarModelRepository;
 import cct.gersgarage.springboot.repository.CarRepository;
 import cct.gersgarage.springboot.repository.MechanicRepository;
+import cct.gersgarage.springboot.repository.PartRepository;
+import cct.gersgarage.springboot.repository.PartUseRepository;
 import cct.gersgarage.springboot.repository.RepairTypeRepository;
 import cct.gersgarage.springboot.repository.ServiceBookingRepository;
 import cct.gersgarage.springboot.repository.UserRepository;
@@ -41,6 +51,15 @@ public class ServiceBookingController {
 	private RepairTypeRepository repairTypeRepository;
 	@Autowired
 	private MechanicRepository mechanicRepository;
+	@Autowired
+	private CarMakeRepository carMakeRepository;
+	@Autowired
+	private CarModelRepository carModelRepository;
+	@Autowired
+	private PartRepository partRepository;
+	@Autowired
+	private PartUseRepository partUseRepository;
+	
 
 	@GetMapping("/getbookings")
 	public List<ServiceBooking> getAllBookings(){
@@ -261,6 +280,103 @@ public class ServiceBookingController {
 			}
 		}
 		return booking;
+	}
+	
+	@GetMapping("/modelListGenerator/{makeid}")
+	public List<CarModel> getAllModels(@PathVariable("makeid") int makeID){
+		List<CarModel> carModels = new ArrayList<CarModel>();
+		for(CarModel model:carModelRepository.findAll()) {
+			if(model.getMakeId()==makeID) {
+				carModels.add(model);
+			}
+		}
+		return carModels;
+	}
+	
+	@GetMapping("/makeListGenerator")
+	public List<CarMake> getAllMakes(){
+		return carMakeRepository.findAll();
+	}
+	
+	@GetMapping("/partListGenerator")
+	public List<Part> getAllParts(){
+		return partRepository.findAll();
+	}
+	
+	@GetMapping("/mechanicListGenerator")
+	public List<Mechanic> getAllMechanics(){
+		return mechanicRepository.findAll();
+	}
+	
+	@GetMapping("/getCarInfo/{plate}")
+	public Car getCarInfo(@PathVariable("plate") String plate){
+		Car carFound = new Car();
+		for(Car car:carRepository.findAll()) {
+			if(car.getPlate().equals(plate)) {
+				carFound=car;
+			}
+		}
+		return carFound;
+	}
+	
+	@GetMapping("/getFixedPrice/{repairtype}")
+	public double getFixedPrice(@PathVariable("repairtype") String repairtype){
+		RepairType repT = new RepairType();
+		for(RepairType rep:repairTypeRepository.findAll()) {
+			if(rep.getRepairID().equals(repairtype)) {
+				repT = rep;
+			}
+		}
+		return repT.getCost();
+	}
+	
+	@PostMapping("/saveModifiedBooking") //later
+	public boolean postModifiedBooking(@RequestBody ModifiedBooking booking) {
+		System.out.println(booking.getMechanicID());
+		for(ServiceBooking bookingTemp:serviceBookingRepository.findAll()) {
+			if(bookingTemp.getServiceID()==booking.getServiceID()) {
+				bookingTemp.setMechanicID(booking.getMechanicID());
+				bookingTemp.setStatus(booking.getStatus());
+				for(PartUse part:booking.getParts()) {
+					partUseRepository.save(part);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	@GetMapping("/getPartsUsed/{serviceID}")
+	public List<PartUse> getPartsUsed(@PathVariable("serviceID") String serviceID){
+		List<PartUse> partsUsed = new ArrayList<PartUse>();
+		for(PartUse part:partUseRepository.findAll()) {
+			if(part.getServiceID()==Integer.parseInt(serviceID)) {
+				partsUsed.add(part);
+			}
+		}
+		return partsUsed;
+	}
+	
+	@GetMapping("/getPartsUsedInfo/{partID}")
+	public List<Part> getPartsUsedCost(@PathVariable("partID") String partID){
+		List<Part> parts = new ArrayList<Part>();
+		for(Part part:partRepository.findAll()) {
+			if(part.getPartID()==Integer.parseInt(partID)) {
+				parts.add(part);
+			}
+		}
+		return parts;
+	}
+	
+	@GetMapping("/getPartsUsedDesription/{partID}")
+	public String getPartsUsedDescription(@PathVariable("partID") String partID){
+		String desc = "";
+		for(Part part:partRepository.findAll()) {
+			if(part.getPartID()==Integer.parseInt(partID)) {
+				desc = part.getDescription();
+			}
+		}
+		return desc;
 	}
 	
 	

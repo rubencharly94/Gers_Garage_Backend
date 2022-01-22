@@ -10,20 +10,23 @@ import javax.persistence.Table;
 public class Part {
 	@Id
 	@Column(name = "partid")
-	private String partID;
+	private int partID;
 	@Column(name = "cost")
 	private double cost;
-	public Part(String partID, double cost) {
+	@Column(name = "description")
+	private String description;
+	public Part(int partID, double cost,String description) {
 		this.partID = partID;
 		this.cost = cost;
+		this.description = description;
 	}
 	public Part() {
 		
 	}
-	public String getPartID() {
+	public int getPartID() {
 		return partID;
 	}
-	public void setPartID(String partID) {
+	public void setPartID(int partID) {
 		this.partID = partID;
 	}
 	public double getCost() {
@@ -31,6 +34,12 @@ public class Part {
 	}
 	public void setCost(double cost) {
 		this.cost = cost;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
 	}
 	
 }
