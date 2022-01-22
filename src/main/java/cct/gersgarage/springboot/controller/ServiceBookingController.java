@@ -109,10 +109,10 @@ public class ServiceBookingController {
 		return usertemp;
 	}
 	
-	@PostMapping("/savebooking")
-	public boolean postBooking(@RequestBody BookingForm booking) {
+	@PostMapping("/savebooking/{username}")
+	public boolean postBooking(@PathVariable("username") String username, @RequestBody BookingForm booking) {
 		User user = new User();
-		user.setUserID("3");
+		user.setUserID(username);
 		user.setName(booking.getName());
 		user.setPhone(booking.getPhone());
 		user.setEmail(booking.getEmail());
@@ -128,7 +128,7 @@ public class ServiceBookingController {
 		serviceBooking.setDate(booking.getDate());
 		serviceBooking.setComments(booking.getComments());
 		serviceBooking.setStatus("booked");
-		serviceBooking.setUserID("usertest");
+		serviceBooking.setUserID(username);
 		serviceBooking.setMechanicID(0);
 		serviceBooking.setCarID(booking.getPlate());
 		serviceBooking.setRepairID(booking.getServiceType()+booking.getVehType());
@@ -302,6 +302,28 @@ public class ServiceBookingController {
 	@GetMapping("/makeListGenerator")
 	public List<CarMake> getAllMakes(){
 		return carMakeRepository.findAll();
+	}
+	
+	@GetMapping("/getMake/{makeid}")
+	public String getMake(@PathVariable("makeid") int makeid){
+		String resp = "";
+		for(CarMake car:carMakeRepository.findAll()) {
+			if(car.getMakeId()==makeid) {
+				resp=car.getMakeName();
+			}
+		}
+		return resp;
+	}
+	
+	@GetMapping("/getModel/{modelid}")
+	public String getModel(@PathVariable("modelid") int modelid){
+		String resp="";
+		for(CarModel car:carModelRepository.findAll()) {
+			if(car.getModelId()==modelid) {
+				resp=car.getModel();
+			}
+		}
+		return resp;
 	}
 	
 	@GetMapping("/partListGenerator")
