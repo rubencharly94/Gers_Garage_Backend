@@ -1,11 +1,12 @@
 package cct.gersgarage.springboot.controller;
-
+import java.util.Base64;
+import com.google.gson.Gson;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
-import org.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 
 import cct.gersgarage.springboot.model.BookingForm;
 import cct.gersgarage.springboot.model.Car;
@@ -27,6 +29,7 @@ import cct.gersgarage.springboot.model.PartUse;
 import cct.gersgarage.springboot.model.RepairType;
 import cct.gersgarage.springboot.model.ServiceBooking;
 import cct.gersgarage.springboot.model.User;
+import cct.gersgarage.springboot.model.UserPass;
 import cct.gersgarage.springboot.repository.CarMakeRepository;
 import cct.gersgarage.springboot.repository.CarModelRepository;
 import cct.gersgarage.springboot.repository.CarRepository;
@@ -36,6 +39,7 @@ import cct.gersgarage.springboot.repository.PartUseRepository;
 import cct.gersgarage.springboot.repository.RepairTypeRepository;
 import cct.gersgarage.springboot.repository.ServiceBookingRepository;
 import cct.gersgarage.springboot.repository.UserRepository;
+import cct.gersgarage.springboot.repository.UserPassRepository;
 
 @CrossOrigin(origins = "http://192.168.1.67")
 @RestController
@@ -59,6 +63,8 @@ public class ServiceBookingController {
 	private PartRepository partRepository;
 	@Autowired
 	private PartUseRepository partUseRepository;
+	@Autowired
+	private UserPassRepository userPassRepository;
 	
 
 	@GetMapping("/getbookings")
@@ -378,6 +384,30 @@ public class ServiceBookingController {
 		}
 		return desc;
 	}
+	
+	@GetMapping("/users/{token}")
+	public boolean authentication(@PathVariable("token") String token){ //checks if the User and Password combination exists in the users table
+		
+		var accessgranted = false;
+		
+		String[] chunks = token.split("\\."); //receives the token from the app and decodes it to get the user and password
+		Base64.Decoder decoder = Base64.getDecoder();
+
+		String payload = new String(decoder.decode(chunks[1])); //payload contains the main object of the token
+		
+		Gson gson = new Gson();//having the String of payload, Gson creates a User object with that
+		UserPass tempuser = gson.fromJson(payload , UserPass.class);
+		
+		for(UserPass user : userPassRepository.findAll()){//checks if user and password exist in the database
+			if(user.getUser().equals(tempuser.getUser())&&user.getPassword().equals(tempuser.getPassword())) {
+				accessgranted = true;
+			}
+		}
+		
+		return accessgranted;
+		
+	}
+	
 	
 	
 }
